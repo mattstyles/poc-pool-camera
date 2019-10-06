@@ -1,0 +1,43 @@
+{
+  "name": "pool-camera",
+  "version": "0.0.0",
+  "description": "Tilemap POC using sprite pooling and camera",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "speedrun src/index.js"
+  },
+  "author": "Matt Styles",
+  "license": "MIT",
+  "standard": {
+    "parser": "babel-eslint",
+    "ignore": [
+      "**/node_modules/**",
+      "**/lib/"
+    ]
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ]
+  },
+  "devDependencies": {
+    "@babel/core": "^7.6.2",
+    "@babel/preset-env": "^7.6.2",
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.5.1",
+    "speedrun": "^1.0.0",
+    "standard": "^14.3.1"
+  },
+  "dependencies": {
+    "canvas-fit": "^1.5.0",
+    "fast-simplex-noise": "3.2.0",
+    "mathutil": "^2.3.0",
+    "ndarray": "^1.0.18",
+    "ndarray-fill": "^1.0.2",
+    "pixi.js": "^5.1.5",
+    "raid-streams": "^3.3.3",
+    "stats.js": "^0.17.0",
+    "zeros": "^1.0.0"
+  }
+}
