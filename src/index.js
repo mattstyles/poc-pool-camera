@@ -2,12 +2,14 @@
 import { Sprite, Container, Graphics } from 'pixi.js'
 import { Rect, Point } from 'mathutil'
 import { resize, actions } from 'raid-streams/screen'
+import { Camera } from 'pixi-holga/lib/index.mjs'
+import { SpritePool } from 'pixi-spritepool'
 
 import { createCanvas, createApplication } from './app'
 import { stats } from './fps'
 import { frames } from './texture'
 import { map } from './map'
-import { Camera } from './camera'
+// import { Camera } from './camera'
 import { rgbToNum } from './utils'
 
 /**
@@ -68,6 +70,16 @@ const camera = Camera.of({
 })
 // camera.attach(container)
 
+/**
+ * Set up sprite pool
+ */
+const pool = SpritePool.of({
+  length: viewWidth * viewHeight,
+  container
+})
+// @TODO a real app would probably need to ensure the pool is big enough by
+// responding to viewport changes
+
 // Helper for rendering a cell
 const getCellTemplate = [
   {
@@ -96,11 +108,45 @@ const renderTile = (cell, sprite) => {
   sprite.tint = tmpl.tint
 }
 
+const renderTiles = (camera, tiles) => {
+  let cell = null
+  let sprite = null
+  let exists = false
+  let i = 0
+
+  for (let y = camera.viewport.pos[1]; y < camera.viewport.pos[3]; y++) {
+    for (let x = camera.viewport.pos[0]; x < camera.viewport.pos[2]; x++) {
+      cell = (x < tiles.shape[0] && y < tiles.shape[1])
+        ? tiles.get(x, y)
+        : null
+
+      // Use i and iterate
+      sprite = pool.get(i)
+
+      exists = !(typeof cell === 'undefined' || cell === null)
+
+      if (exists) {
+        camera.translateSprite(sprite, x, y)
+
+        renderTile(cell, sprite)
+      }
+
+      // Hide sprites that may have previously been rendered
+      if (!exists) {
+        sprite.visible = false
+      }
+
+      // Explicitly ensure we are looping over the sprite pool
+      i = i + 1
+    }
+  }
+}
+
 const render = () => {
   stats.begin()
 
   // render map
-  camera.renderTiles(map, renderTile)
+  renderTiles(camera, map)
 
   // move character to screen coords for this camera
   camera.translateSprite(dude, ...dudePosition.pos)
