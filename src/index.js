@@ -2,7 +2,7 @@
 import { Sprite, Container, Graphics } from 'pixi.js'
 import { Rect, Point } from 'mathutil'
 import { resize, actions } from 'raid-streams/screen'
-import { Camera } from 'pixi-holga/lib/index.mjs'
+import { Camera } from 'pixi-holga'
 import { SpritePool } from 'pixi-spritepool'
 
 import { createCanvas, createApplication } from './app'

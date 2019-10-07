@@ -35,7 +35,7 @@
     "mathutil": "^2.3.0",
     "ndarray": "^1.0.18",
     "ndarray-fill": "^1.0.2",
-    "pixi-holga": "^0.2.0",
+    "pixi-holga": "^0.3.0",
     "pixi-spritepool": "^0.1.0",
     "pixi.js": "^5.1.5",
     "raid-streams": "^3.3.3",
