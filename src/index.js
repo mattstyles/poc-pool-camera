@@ -1,7 +1,7 @@
 
 import { Sprite, Container, Graphics } from 'pixi.js'
-import { Rect, Point } from 'mathutil'
-import { resize, actions } from 'raid-streams/screen'
+import { Rect, Point } from 'pixi-holga/node_modules/mathutil'
+import { resize } from 'raid-streams/screen'
 import { Camera } from 'pixi-holga'
 import { SpritePool } from 'pixi-spritepool'
 
@@ -41,10 +41,6 @@ const centralise = container => (w, h) => {
 
 const centraliseView = centralise(container)
 
-// setTimeout(() => {
-//   centraliseView(window.innerWidth, window.innerHeight)
-// }, 100)
-
 resize({
   debounce: 50,
   el: window
@@ -69,6 +65,30 @@ const camera = Camera.of({
   container
 })
 // camera.attach(container)
+
+/**
+ * toWorld transform and interactivity test
+ */
+container.interactive = true
+container.buttonMode = true
+container.on('pointerdown', event => {
+  console.group('Container pointer down')
+  const { x: sx, y: sy } = event.data.getLocalPosition(container)
+  console.log('screen:', ...[sx, sy])
+  console.log('world:', ...camera.toWorldCoords(sx, sy).pos)
+  console.groupEnd()
+})
+container.on('pointermove', event => {
+  if (event.data.buttons < 1) {
+    return
+  }
+
+  const { x: sx, y: sy } = event.data.getLocalPosition(container)
+  console.group('Container move with button down')
+  console.log('screen:', ...[sx, sy])
+  console.log('world:', ...camera.toWorldCoords(sx, sy).pos)
+  console.groupEnd()
+})
 
 /**
  * Set up sprite pool
