@@ -2,6 +2,7 @@
 import { Sprite, Container, Graphics } from 'pixi.js'
 import { Rect, Point } from 'pixi-holga/node_modules/mathutil'
 import { resize } from 'raid-streams/screen'
+import keystream, { keydown, keyup, actions as keyActions } from 'raid-streams/keys'
 import { Camera } from 'pixi-holga'
 import { SpritePool } from 'pixi-spritepool'
 
@@ -11,6 +12,7 @@ import { frames } from './texture'
 import { map } from './map'
 // import { Camera } from './camera'
 import { rgbToNum } from './utils'
+import constants from './constants'
 
 /**
  * Set up rendering screen
@@ -52,7 +54,7 @@ resize({
 const border = new Graphics()
 border.lineStyle(2, 0xF02044)
 border.beginFill(0x464646)
-border.drawRect(-2, -2, (viewWidth * 10) + 4, (viewHeight * 10) + 4)
+border.drawRect(-2, -2, (viewWidth * constants.cellSize) + 4, (viewHeight * constants.cellSize) + 4)
 border.endFill()
 container.addChild(border)
 
@@ -62,13 +64,19 @@ container.addChild(border)
 const camera = Camera.of({
   viewport: Rect.of(0, 0, viewWidth, viewHeight),
   bounds: Rect.of(0, 0, map.shape[0], map.shape[1]),
+  settings: {
+    cellSize: Point.of(constants.cellSize, constants.cellSize)
+  },
   container
 })
 // camera.attach(container)
 
 /**
- * toWorld transform and interactivity test
+ * toWorld transform and interactivity test.
+ * Panning on the map is enabled.
  */
+let startInteractionPos = [0, 0]
+
 container.interactive = true
 container.buttonMode = true
 container.on('pointerdown', event => {
@@ -77,6 +85,8 @@ container.on('pointerdown', event => {
   console.log('screen:', ...[sx, sy])
   console.log('world:', ...camera.toWorldCoords(sx, sy).pos)
   console.groupEnd()
+
+  startInteractionPos = camera.toWorldCoords(sx, sy).pos
 })
 container.on('pointermove', event => {
   if (event.data.buttons < 1) {
@@ -88,6 +98,37 @@ container.on('pointermove', event => {
   console.log('screen:', ...[sx, sy])
   console.log('world:', ...camera.toWorldCoords(sx, sy).pos)
   console.groupEnd()
+
+  const worldPos = camera.toWorldCoords(sx, sy).pos
+
+  const desiredMove = [0, 0]
+  if (worldPos[0] > startInteractionPos[0]) {
+    desiredMove[0] = -1
+  }
+  if (worldPos[0] < startInteractionPos[0]) {
+    desiredMove[0] = 1
+  }
+  if (worldPos[1] > startInteractionPos[1]) {
+    desiredMove[1] = -1
+  }
+  if (worldPos[1] < startInteractionPos[1]) {
+    desiredMove[1] = 1
+  }
+
+  startInteractionPos = camera.toWorldCoords(sx, sy).pos
+  camera.pan(...desiredMove)
+})
+container.on('pointerup', event => {
+  console.group('Container pointer up')
+  const { x: sx, y: sy } = event.data.getLocalPosition(container)
+  console.log('screen:', ...[sx, sy])
+  console.log('world:', ...camera.toWorldCoords(sx, sy).pos)
+  console.groupEnd()
+
+  startInteractionPos = [0, 0]
+
+  // const worldPos = camera.toWorldCoords(sx, sy)
+  // camera.panTo(...worldPos.pos)
 })
 
 /**
@@ -116,9 +157,57 @@ const getCellTemplate = [
 
 // Manually add a character
 const dude = new Sprite(frames[2])
-const dudePosition = Point.of(2, 2)
+const dudePosition = Point.of(constants.dudeCameraOffset, constants.dudeCameraOffset)
 dude.tint = 0xFAF089
 container.addChild(dude)
+
+// Add dude interaction -- using keydown and keyup limits to one single key press per event
+// const keys = new Map()
+// keydown(keys).observe(event => {
+//   if (event.payload.key === '<up>') {
+//     dudePosition.translate(0, -1)
+//   }
+//
+//   if (event.payload.key === '<down>') {
+//     dudePosition.translate(0, 1)
+//   }
+//
+//   if (event.payload.key === '<left>') {
+//     dudePosition.translate(-1, 0)
+//   }
+//
+//   if (event.payload.key === '<right>') {
+//     dudePosition.translate(1, 0)
+//   }
+//
+//   camera.panTo(Point.translate(dudePosition, Point.of(-constants.dudeCameraOffset, -constants.dudeCameraOffset)))
+// })
+// // Required to unset key map
+// keyup(keys).observe(() => {})
+
+// Need to add a debounce to raid-stream/keystream to control the key repeat behaviour, currently it is hard-wired to raf
+keystream().observe(event => {
+  if (event.type === keyActions.keypress) {
+    if (event.payload.keys.has('<up>')) {
+      dudePosition.translate(0, -1)
+    }
+
+    if (event.payload.keys.has('<down>')) {
+      dudePosition.translate(0, 1)
+    }
+
+    if (event.payload.keys.has('<left>')) {
+      dudePosition.translate(-1, 0)
+    }
+
+    if (event.payload.keys.has('<right>')) {
+      dudePosition.translate(1, 0)
+    }
+  }
+
+  // Camera follow
+  camera.panTo(Point.translate(dudePosition, Point.of(-constants.dudeCameraOffset, -constants.dudeCameraOffset)))
+})
 
 // Whip this out here to stop GC thrashing by reinit in the render loop
 const renderTile = (cell, sprite) => {
@@ -175,8 +264,8 @@ const render = () => {
 }
 
 // Render loop
-// app.ticker.add(render)
-render()
+app.ticker.add(render)
+// render()
 
 // Test re-rendering everything and check FPS
 // app.ticker.add((tick) => {
