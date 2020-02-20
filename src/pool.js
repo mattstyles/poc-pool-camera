@@ -2,6 +2,10 @@
 import { Sprite } from 'pixi.js'
 
 /**
+ * NOT USED, NOW PUBLISHED AS PIXI-SPRITEPOOL
+ */
+
+/**
  * Try a generic sprite pool, with malloc and free abilities.
  * All sprites are hidden by default.
  */

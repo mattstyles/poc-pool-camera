@@ -1,6 +1,6 @@
 
 import { Sprite, Container, Graphics } from 'pixi.js'
-import { Rect, Point } from 'pixi-holga/node_modules/mathutil'
+import { Rect, Point } from 'mathutil'
 import { resize } from 'raid-streams/screen'
 import keystream, { keydown, keyup, actions as keyActions } from 'raid-streams/keys'
 import { Camera } from 'pixi-holga'
@@ -10,7 +10,6 @@ import { createCanvas, createApplication } from './app'
 import { stats } from './fps'
 import { frames } from './texture'
 import { map } from './map'
-// import { Camera } from './camera'
 import { rgbToNum } from './utils'
 import constants from './constants'
 
@@ -24,13 +23,13 @@ const app = createApplication({
 const container = new Container()
 app.stage.addChild(container)
 
-const viewWidth = 32
-const viewHeight = 32
-const viewScale = 2
+const viewWidth = constants.viewportSize[0]
+const viewHeight = constants.viewportSize[1]
+const viewScale = constants.viewportScale
 
 container.position.set(
-  (window.innerWidth * 0.5) - (viewWidth * 10),
-  (window.innerHeight * 0.5) - (viewHeight * 10)
+  (window.innerWidth * 0.5) - (viewWidth * (constants.cellSize * viewScale * 0.5)),
+  (window.innerHeight * 0.5) - (viewHeight * (constants.cellSize * viewScale * 0.5))
 )
 container.scale.set(viewScale)
 
@@ -127,6 +126,7 @@ container.on('pointerup', event => {
 
   startInteractionPos = [0, 0]
 
+  // Click to instant pan to tile
   // const worldPos = camera.toWorldCoords(sx, sy)
   // camera.panTo(...worldPos.pos)
 })
@@ -186,28 +186,39 @@ container.addChild(dude)
 // keyup(keys).observe(() => {})
 
 // Need to add a debounce to raid-stream/keystream to control the key repeat behaviour, currently it is hard-wired to raf
-keystream().observe(event => {
-  if (event.type === keyActions.keypress) {
-    if (event.payload.keys.has('<up>')) {
-      dudePosition.translate(0, -1)
-    }
-
-    if (event.payload.keys.has('<down>')) {
-      dudePosition.translate(0, 1)
-    }
-
-    if (event.payload.keys.has('<left>')) {
-      dudePosition.translate(-1, 0)
-    }
-
-    if (event.payload.keys.has('<right>')) {
-      dudePosition.translate(1, 0)
-    }
-  }
-
-  // Camera follow
-  camera.panTo(Point.translate(dudePosition, Point.of(-constants.dudeCameraOffset, -constants.dudeCameraOffset)))
+keystream({
+  rate: constants.keyRepeat
 })
+  .observe(event => {
+    if (event.type === keyActions.keypress) {
+      if (event.payload.keys.has('<up>')) {
+        dudePosition.translate(0, -1)
+      }
+
+      if (event.payload.keys.has('<down>')) {
+        dudePosition.translate(0, 1)
+      }
+
+      if (event.payload.keys.has('<left>')) {
+        dudePosition.translate(-1, 0)
+      }
+
+      if (event.payload.keys.has('<right>')) {
+        dudePosition.translate(1, 0)
+      }
+    }
+
+    // Camera follow
+    camera.panTo(
+      Point.translate(
+        dudePosition,
+        Point.of(
+          -constants.dudeCameraOffset,
+          -constants.dudeCameraOffset
+        )
+      )
+    )
+  })
 
 // Whip this out here to stop GC thrashing by reinit in the render loop
 const renderTile = (cell, sprite) => {

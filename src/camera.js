@@ -9,6 +9,10 @@ const defaultSettings = {
 }
 
 /**
+ * NOT USED, NOW PUBLISHED AS PIXI-HOLGA
+ */
+
+/**
  * Notes:
  * Position can be gleaned from viewport dimensions so is unnecessary.
  * Offset, to draw to a specific place is also unnecessary, a camera is attached
