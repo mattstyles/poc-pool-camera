@@ -163,7 +163,7 @@ container.addChild(dude)
 
 // Add dude interaction -- using keydown and keyup limits to one single key press per event
 // const keys = new Map()
-// keydown(keys).observe(event => {
+// keydown({keys}).observe(event => {
 //   if (event.payload.key === '<up>') {
 //     dudePosition.translate(0, -1)
 //   }
@@ -183,11 +183,12 @@ container.addChild(dude)
 //   camera.panTo(Point.translate(dudePosition, Point.of(-constants.dudeCameraOffset, -constants.dudeCameraOffset)))
 // })
 // // Required to unset key map
-// keyup(keys).observe(() => {})
+// keyup({keys}).observe(() => {})
 
 // Need to add a debounce to raid-stream/keystream to control the key repeat behaviour, currently it is hard-wired to raf
 keystream({
-  rate: constants.keyRepeat
+  rate: constants.keyRepeat,
+  el: document.querySelector('#js-canvas')
 })
   .observe(event => {
     if (event.type === keyActions.keypress) {

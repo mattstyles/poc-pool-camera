@@ -38,6 +38,7 @@
     "pixi-holga": "^0.5.0",
     "pixi-spritepool": "^0.1.0",
     "pixi.js": "^5.1.5",
+    "raid-addons": "^4.0.0",
     "raid-streams": "^3.5.0",
     "stats.js": "^0.17.0",
     "zeros": "^1.0.0"
